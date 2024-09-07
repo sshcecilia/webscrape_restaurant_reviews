@@ -17,9 +17,8 @@ def access_webpage(url):
     driver = webdriver.Chrome()
     driver.set_page_load_timeout(300)
     driver.get(url)
-
+    
     return driver
-       
 
 def search_scroll(driver, query, num_scroll = -1):
     """
@@ -43,39 +42,36 @@ def search_scroll(driver, query, num_scroll = -1):
         driver.execute_script('arguments[0].scrollTo(0, arguments[0].scrollHeight)', divSideBar)
         time.sleep(1.2)
         html = wait.until(EC.visibility_of_element_located((By.TAG_NAME, "html"))).get_attribute('outerHTML')
-        if ((html.find("You've reached the end of the list.") != -1) | i == 0):
+        if ((html.find("You've reached the end of the list.") != -1) | num_scroll == 0):
             keepScrolling = False
         num_scroll -= 1
 
-def extract_restaurants(driver):
+def extract_basic(element):
     """
-    Extract the following into a Pandas Dataframe
+    Extract the following information of a restaurant
     - Name of the restaurants
     - Google maps link of the restaurant
     - Status of the restaurant (whether the store is operating)
     - Ratings and Number of reviews
 
+    :param driver: An element of a webpage
+    """
+    name = element.find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('aria-label')
+    href = element.find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('href')
+    info = element.find_elements(By.CSS_SELECTOR, "span.ZkP5Je")[0].get_attribute('aria-label')
+    
+    # If Status is not available, set it to 'Open'. If number of reviews are not available
+    if (len(element.find_elements(By.CSS_SELECTOR, "span.eXlrNe")) == 0):
+        status = 'Open'
+    else:
+        status = element.find_elements(By.CSS_SELECTOR, "span.eXlrNe")[0].text
+    return name, href, status, info
+
+def restaurant_list(driver):
+    """
+    Obtain a list of elements for the restaurants extracted from the webpage
+    
     :param driver: webdriver object
     """
-    data = pd.DataFrame(columns = ['id', 'name', 'href', 'status', 'info'])
     raw = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")
-
-    for i in range(len(raw)):
-
-        # Skip extracting restaurant if link has been scraped. Avoid duplicate copies of the same restaurant.
-        if sum(data['href'].isin([raw[i].find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('href')])) >= 1: 
-            continue
-
-        # If Status is not available, set it to 'Open'. If number of reviews are not available
-        elif (len(raw[i].find_elements(By.CSS_SELECTOR, "span.eXlrNe")) == 0):
-            data = pd.concat([data, pd.DataFrame({'id': i, 'name': raw[i].find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('aria-label'), 'href': [raw[i].find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('href')], 'status': ['Open'], 'info': [raw[i].find_elements(By.CSS_SELECTOR, "span.ZkP5Je")[0].get_attribute('aria-label')]})], ignore_index = True)
-
-        else:
-            data = pd.concat([data, pd.DataFrame({'id': i, 'name': raw[i].find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('aria-label'), 'href': [raw[i].find_elements(By.CSS_SELECTOR, "a.hfpxzc")[0].get_attribute('href')], 'status': [raw[i].find_elements(By.CSS_SELECTOR, "span.eXlrNe")[0].text], 'info': [raw[i].find_elements(By.CSS_SELECTOR, "span.ZkP5Je")[0].get_attribute('aria-label')]})], ignore_index = True) 
-
-    return data
-
-driver = access_webpage(url = "https://www.google.com/maps")
-search_scroll(driver, query = "Food in Singapore")
-data = extract_restaurants(driver)
-driver.close()
+    return raw
