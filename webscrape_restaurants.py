@@ -6,7 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 import time
 import pandas as pd
 
-
 def access_webpage(url):
     """
     Open and return the driver to the url provided
@@ -46,6 +45,15 @@ def search_scroll(driver, query, num_scroll = -1):
             keepScrolling = False
         num_scroll -= 1
 
+def restaurant_list(driver):
+    """
+    Obtain a list of elements for the restaurants extracted from the webpage
+    
+    :param driver: webdriver object
+    """
+    raw = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")
+    return raw
+
 def extract_basic(element):
     """
     Extract the following information of a restaurant
@@ -66,12 +74,3 @@ def extract_basic(element):
     else:
         status = element.find_elements(By.CSS_SELECTOR, "span.eXlrNe")[0].text
     return name, href, status, info
-
-def restaurant_list(driver):
-    """
-    Obtain a list of elements for the restaurants extracted from the webpage
-    
-    :param driver: webdriver object
-    """
-    raw = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")
-    return raw
