@@ -5,10 +5,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import time
 
-def extract_info(driver):
+def get_info(driver):
     
     ## Type
-    type = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.skqShb"))).text.split('\n')[-1]
+    restaurant_type = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.skqShb"))).text.split('\n')[-1]
 
     ## Price Level
     price_label = ''
@@ -31,13 +31,15 @@ def extract_info(driver):
     except:
         pass
     
-    return type, price_label, price_level, address, website
+    return restaurant_type, price_label, price_level, address, website
 
 def get_latlong(driver):
 
+    time.sleep(5)
+
     ## Get Lat Long 
-    ActionChains(driver).move_to_element(WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH,"//html/body")))).context_click().perform()
-    lat_long = str(WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.mLuXec"))).text)
+    ActionChains(driver).move_to_element(WebDriverWait(driver, 25).until(EC.visibility_of_element_located((By.XPATH,"//html/body")))).context_click().perform()
+    lat_long = str(WebDriverWait(driver, 25).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.mLuXec"))).text)
 
     return lat_long
 
@@ -47,6 +49,7 @@ def get_ophours(driver):
     
     ## Operating hours
     try:
+        time.sleep(5)
         element = driver.find_element(By.XPATH, "//span[@aria-label = 'Show open hours for the week']")
         element.click()
 
@@ -59,7 +62,6 @@ def get_ophours(driver):
         pass
 
     return op_hours
-
 
 def get_poptime(driver):
 
@@ -114,7 +116,7 @@ def get_service(driver):
 
     return services
 
-def expand_reviews(driver):
+def expand_reviews(driver, max_scroll = -1):
     element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//button[@data-tab-index = '1']")))
     element.click()
 
@@ -133,14 +135,18 @@ def expand_reviews(driver):
         driver.execute_script('arguments[0].scrollTo(0, arguments[0].scrollHeight)', divSideBar)
         time.sleep(0.8)
         current_length = len(WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, "//span[@class = 'rsqaWe']"))))
-        if current_length == length:
+        if max_scroll == 0:
+            keepScrolling = False
+        elif current_length == length:
             keepScrolling = False
         elif (WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, "//span[@class = 'rsqaWe']")))[-1].text == 'a year ago') and (current_length >= 300):
             keepScrolling = False
+        max_scroll -= 1
         length = len(WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, "//span[@class = 'rsqaWe']"))))
         for i in driver.find_elements(By.XPATH, "//button[@class = 'w8nwRe kyuRq']"):
             i.click()
             time.sleep(0.8)
+        
 
     review_id_list = WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, "//button[@class = 'al6Kxe']")))
     user_info_list = WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[@class = 'WNxzHc qLhwHc']")))

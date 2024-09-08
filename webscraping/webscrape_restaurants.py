@@ -4,7 +4,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import time
-import pandas as pd
 
 def access_webpage(url):
     """
@@ -16,16 +15,20 @@ def access_webpage(url):
     driver = webdriver.Chrome()
     driver.set_page_load_timeout(300)
     driver.get(url)
+    try:
+        driver.maximize_window()
+    except:
+        pass
     
     return driver
 
-def search_scroll(driver, query, num_scroll = -1):
+def search_scroll(driver, query, max_scroll = -1):
     """
     Search based on the query provided and scroll down the website to get the full list of restaurants
 
     :param driver: webdriver object
     :param query: keyword to enter into the searchbox
-    :param num_scroll: int containing the number of times to scroll. default is -1 to scroll until the end of the page.
+    :param max_scroll: int containing the number of times to scroll. default is -1 to scroll until the end of the page.
     """
     wait = WebDriverWait(driver, 10)
     searchbox = wait.until(EC.visibility_of_element_located((By.ID, 'searchboxinput')))
@@ -41,9 +44,9 @@ def search_scroll(driver, query, num_scroll = -1):
         driver.execute_script('arguments[0].scrollTo(0, arguments[0].scrollHeight)', divSideBar)
         time.sleep(1.2)
         html = wait.until(EC.visibility_of_element_located((By.TAG_NAME, "html"))).get_attribute('outerHTML')
-        if ((html.find("You've reached the end of the list.") != -1) | num_scroll == 0):
+        if ((html.find("You've reached the end of the list.") != -1) | max_scroll == 0):
             keepScrolling = False
-        num_scroll -= 1
+        max_scroll -= 1
 
 def restaurant_list(driver):
     """
