@@ -35,17 +35,18 @@ class refresh_data():
             input_date =  datetime.strptime(input_date, '%Y-%m-%d').date()
         return (date.today() - input_date).days
 
-    def refresh_restaurants(self, restaurant_update_freq = 30):
+    def refresh_restaurants(self, restaurant_update_freq = 30, max_scroll = -1, max_tries = 5):
         """
         Refresh the list of restaurants
 
         :param restaurant_update_freq (int): interval to update the list of restaurants
         """
         for i in self.streetname[self.streetname['last_updated'].apply(self.days_since) >= restaurant_update_freq].index:
-            restaurant_list = webscrape_restaurants.restaurants(self.streetname.loc[i, 'street'])
+            restaurant_list = webscrape_restaurants.restaurants(self.streetname.loc[i, 'street'], max_scroll, max_tries)
             restaurants_subset = restaurant_list.get_restaurant()
             if isinstance(restaurants_subset, pd.DataFrame) :
                 self.restaurants = pd.concat([self.restaurants, restaurants_subset], join = 'outer', sort = False, ignore_index = True)
+                self.restaurants.drop_duplicates(subset = ['restaurant_name', 'href'], keep = 'first', inplace = True, ignore_index = True)
                 self.restaurants.to_csv(self.restaurant_dir, index = False)
                 self.streetname.loc[i, 'last_updated'] = date.today()
                 self.streetname.to_csv(self.streetname_dir, index = False)
@@ -66,16 +67,17 @@ class refresh_data():
             self.restaurants.loc[i,'details_last_updated'] = date.today()
             self.restaurants.to_csv(self.restaurant_dir, index = False)
             
-    def refresh_reviews(self, reviews_update_freq = 30):
+    def refresh_reviews(self, reviews_update_freq = 30, max_scroll = -1, max_tries = 5, min_length = 300):
         """
         Refresh the reviews of a restaurant
 
         :param reviews_update_freq (int): interval to update the restaurant's reviews
         """
         for i in self.restaurants[self.restaurants['reviews_last_updated'].apply(self.days_since) >= reviews_update_freq].index:
-            reviews_list = webscrape_reviews.reviews(self.restaurants['href'].iloc[i], self.restaurants['restaurant_name'].iloc[i])
+            reviews_list = webscrape_reviews.reviews(self.restaurants['href'].iloc[i], self.restaurants['restaurant_name'].iloc[i], max_scroll, max_tries, min_length)
             reviews_sub = reviews_list.get_reviews()
             self.reviews = pd.concat([self.reviews,reviews_sub], sort = False, ignore_index = True)
+            #self.reviews.drop_duplicates(subset = ['restaurant_name', 'review_id', 'user_href'], keep = 'first', inplace = True, ignore_index = True)
             self.reviews.to_csv(self.review_dir, index = False)
             self.restaurants.loc[i, 'reviews_last_updated'] = date.today()
             self.restaurants.to_csv(self.restaurant_dir, index = False)
