@@ -24,16 +24,27 @@ class details():
         - Address
         - Restaurant's wensite if available
         """
-        time.sleep(2)
-        restaurant_type = self.wait.until(
-                            EC.visibility_of_element_located(
-                                (By.CSS_SELECTOR, "div.skqShb"))).text.split('\n')[-1]
-        address = self.wait.until(
-                    EC.visibility_of_element_located(
-                        (By.CSS_SELECTOR, "div.rogA2c "))).text
+        time.sleep(3)
+        restaurant_type = ''
+        address = ''
         price_label = ''
         price_level = ''
         website = ''
+
+        try:
+            restaurant_type = self.wait.until(
+                                EC.visibility_of_element_located(
+                                    (By.CSS_SELECTOR, "div.skqShb"))).text.split('\n')[-1]
+        except (TimeoutException, NoSuchElementException):
+            pass
+
+        try:
+            address = self.wait.until(
+                        EC.visibility_of_element_located(
+                            (By.CSS_SELECTOR, "div.rogA2c "))).text
+        except (TimeoutException, NoSuchElementException):
+            pass
+
         try:
             price_label = self.driver.find_element(By.XPATH,
                                             "//span[@class = 'mgr77e']/span/span/span/span"
