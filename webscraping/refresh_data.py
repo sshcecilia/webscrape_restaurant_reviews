@@ -77,7 +77,7 @@ class refresh_data():
 
         :param reviews_update_freq (int): interval to update the restaurant's reviews
         """
-        for i in self.restaurants[self.restaurants['reviews_last_updated'].apply(self.days_since) >= reviews_update_freq].index:
+        for i in self.restaurants[(self.restaurants['reviews_last_updated'].apply(self.days_since) >= reviews_update_freq) & (self.restaurants['status'] == "Open")].index:
             reviews_list = webscrape_reviews.reviews(self.restaurants['href'].iloc[i], self.restaurants['restaurant_name'].iloc[i], max_scroll, max_tries, min_length)
             reviews_sub = reviews_list.get_reviews()
             self.reviews = pd.concat([self.reviews,reviews_sub], sort = False, ignore_index = True)
@@ -86,7 +86,7 @@ class refresh_data():
             self.restaurants.loc[i, 'reviews_last_updated'] = date.today()
             self.restaurants.to_csv(self.restaurant_dir, index = False)
 
-    def parallel_refresh_restaurants(self, num_threads):
+    def parallel_refresh_restaurants(self, num_threads = 1, restaurant_update_freq = 30, max_scroll = -1, max_tries = 5):
         """
         Parallel processing of the refresh_restaurants function
 
@@ -104,7 +104,7 @@ class refresh_data():
                 self.streetname.iloc[breakpt[i]:breakpt[i+1]].to_csv(new_streetname_dir, index = False)           
             pd.DataFrame().reindex_like(self.restaurants).dropna().to_csv(new_restaurant_dir, index = False)
 
-            t = threading.Thread(target = self.refresh_restaurants, args = (new_restaurant_dir, self.review_dir, new_streetname_dir))
+            t = threading.Thread(target = self.refresh_restaurants, args = (restaurant_update_freq, max_scroll, max_tries))
             t.start()
             threads.append(t)
 
@@ -130,7 +130,7 @@ class refresh_data():
             self.streetname.to_csv(self.streetname_dir, index = False)
             os.remove(new_streetname_dir)
 
-    def parallel_refresh_details(self, num_threads):
+    def parallel_refresh_details(self, num_threads = 1, details_update_freq = 30):
         """
         Parallel processing of the refresh_details function
 
@@ -146,7 +146,7 @@ class refresh_data():
             else:
                 self.restaurants.iloc[breakpt[i]:breakpt[i+1]].to_csv(new_restaurant_dir, index = False)
 
-            t = threading.Thread(target = self.refresh_details, args = (new_restaurant_dir, self.review_dir, self.streetname_dir))
+            t = threading.Thread(target = self.refresh_details, args = (details_update_freq))
             t.start()
             threads.append(t)
 
@@ -172,7 +172,7 @@ class refresh_data():
             self.restaurants.to_csv(self.restaurant_dir, index = False)
             os.remove(new_restaurant_dir)
 
-    def parallel_refresh_reviews(self, num_threads):
+    def parallel_refresh_reviews(self, num_threads = 1, reviews_update_freq = 30, max_scroll = -1, max_tries = 5, min_length = 300):
         """
         Parallel processing of the refresh_reviews function
 
@@ -190,7 +190,7 @@ class refresh_data():
                 self.restaurants.iloc[breakpt[i]:breakpt[i+1]].to_csv(new_restaurant_dir, index = False)
             pd.DataFrame().reindex_like(self.reviews).dropna().to_csv(new_review_dir, index = False)
 
-            t = threading.Thread(target = self.refresh_review, args = (new_restaurant_dir, new_review_dir, self.streetname_dir))
+            t = threading.Thread(target = self.refresh_review, args = (reviews_update_freq, max_scroll, max_tries, min_length))
             t.start()
             threads.append(t)
 
