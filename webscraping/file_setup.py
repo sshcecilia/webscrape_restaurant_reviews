@@ -1,4 +1,4 @@
-import webscrape_restaurants
+from webscraping import webscrape_restaurants
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By

@@ -1,7 +1,7 @@
-import file_setup
-import webscrape_restaurants
-import webscrape_details
-import webscrape_reviews
+from webscraping import file_setup
+from webscraping import webscrape_restaurants
+from webscraping import webscrape_details
+from webscraping import webscrape_reviews
 from datetime import date, datetime
 import pandas as pd
 import threading

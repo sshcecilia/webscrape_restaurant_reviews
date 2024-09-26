@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from datetime import date
 import pandas as pd
-import file_setup
+from webscraping import file_setup
 
 class restaurants():
     """
