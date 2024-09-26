@@ -1,7 +1,11 @@
 import refresh_data
+import os
 
-data = refresh_data.refresh_data('restaurants.csv','reviews.csv','streetname.csv', initial = True)
+if not os.path.exists('data'):
+    os.makedirs('data')
 
-data.parallel_refresh_restaurants(4)
-data.parallel_refresh_details(4)
-data.parallel_refresh_reviews(4)
+data = refresh_data.refresh_data('data/restaurants.csv','data/reviews.csv','data/streetname.csv', initial = False)
+
+data.parallel_refresh_restaurants(num_threads = 4)
+data.parallel_refresh_details(num_threads = 4)
+data.parallel_refresh_reviews(num_threads = 4)
