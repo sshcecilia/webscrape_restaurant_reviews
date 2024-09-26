@@ -46,17 +46,37 @@ def initial_setup(restaurant_dir, review_dir, streetname_dir, initial):
                                 if yes, create the file, else access the files
     """
     if initial == False:
-        restaurants = pd.read_csv(restaurant_dir)
+        restaurants = pd.read_csv(restaurant_dir, keep_default_na=False)
         reviews = pd.read_csv(review_dir)
-        streetname = pd.read_csv(streetname_dir)
+        streetname = pd.read_csv(streetname_dir, keep_default_na=False)
 
     else:
         ## Creation of DataFrame to Store Restaurant Information
-        restaurants = pd.DataFrame(columns = ['restaurant_name', 'href', 'status', 'info','type','price_label','price_level','address','website','lat_long','op_hours','poptime','services','details_last_updated', 'reviews_last_updated'])
-        reviews = pd.DataFrame(columns = ['restaurant_name', 'review_id', 'user_info', 'user_href', 'rating', 'review'])
+        restaurants = pd.DataFrame({'restaurant_name': pd.Series(dtype='str'),
+                                    'href': pd.Series(dtype='str'),
+                                    'status': pd.Series(dtype='str'),
+                                    'info': pd.Series(dtype='str'),
+                                    'type': pd.Series(dtype='str'),
+                                    'price_label': pd.Series(dtype='str'),
+                                    'price_level': pd.Series(dtype='str'),
+                                    'address': pd.Series(dtype='str'),
+                                    'website': pd.Series(dtype='str'),
+                                    'lat_long': pd.Series(dtype='str'),
+                                    'op_hours': pd.Series(dtype='str'),
+                                    'poptime': pd.Series(dtype='str'),
+                                    'services': pd.Series(dtype='str'),
+                                    'details_last_updated': pd.Series(dtype='str'),
+                                    'reviews_last_updated': pd.Series(dtype='str')})
+        
+        reviews = pd.DataFrame({'restaurant_name': pd.Series(dtype='str'),
+                                'review_id': pd.Series(dtype='str'),
+                                'user_info': pd.Series(dtype='str'),
+                                'user_href': pd.Series(dtype='str'),
+                                'rating': pd.Series(dtype='str'),
+                                'review': pd.Series(dtype='str')})
 
         ## Extraction of List of Streetname in Singapore
-        driver = webscrape_restaurants.access_webpage(url = "https://geographic.org/streetview/singapore/index.html")
+        driver = access_webpage(url = "https://geographic.org/streetview/singapore/index.html")
         streetname = pd.DataFrame(['Singapore'], columns = ['street'])
         streetname = pd.concat([streetname, pd.DataFrame(get_streetname(driver), columns = ['street'])], sort = False, ignore_index = True)
         streetname.drop_duplicates(inplace = True)
