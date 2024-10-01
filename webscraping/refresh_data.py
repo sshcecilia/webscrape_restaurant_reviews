@@ -73,7 +73,7 @@ class refresh_data():
             self.restaurants.loc[i,'services'] = restaurant_details.get_service()
             self.restaurants.loc[i,'details_last_updated'] = date.today()
             self.restaurants.to_csv(self.restaurant_dir, index = False)
-            
+
     def refresh_reviews(self, reviews_update_freq = 30, max_scroll = -1, max_tries = 5, min_length = 300):
         """
         Refresh the reviews of a restaurant
@@ -86,7 +86,8 @@ class refresh_data():
         :param min_length (int): Ooly extract customer's reviews within a year or at least min_length number of reviews whichever larger
                                 default value is 300
         """
-        for i in self.restaurants[(self.restaurants['reviews_last_updated'].apply(self.days_since) >= reviews_update_freq) & (self.restaurants['status'] == "Open")].index:
+        type_to_exclude = ['Interior designer','Park·\ue934','Historical landmark·\ue934','Corporate office']
+        for i in self.restaurants[(self.restaurants['reviews_last_updated'].apply(self.days_since) >= reviews_update_freq) & (self.restaurants['status'] == "Open") & (~self.restaurants['type'].isin(type_to_exclude))].index:
             reviews_list = webscrape_reviews.reviews(self.restaurants['href'].iloc[i], self.restaurants['restaurant_name'].iloc[i], max_scroll, max_tries, min_length)
             reviews_sub = reviews_list.get_reviews()
             self.reviews = pd.concat([self.reviews,reviews_sub], sort = False, ignore_index = True)
