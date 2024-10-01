@@ -112,6 +112,7 @@ class restaurants():
             restaurants_element = self.restaurant_list()
             restaurants_subset = pd.DataFrame(map(self.get_basic, restaurants_element), columns = ['restaurant_name', 'href', 'status', 'info'])
             restaurants_subset.drop(restaurants_subset[restaurants_subset['href'] == ''].index, inplace=True)
+            restaurants_subset[['overview_last_updated']] = date.today()
             restaurants_subset[['details_last_updated']] = date(1900,1,1)
             restaurants_subset[['reviews_last_updated']] = date(1900,1,1)
         except TimeoutException:
